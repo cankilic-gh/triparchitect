@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Tooltip, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { MapPin } from '../types';
 import { getCategoryIcon } from './Icons';
@@ -116,7 +116,17 @@ export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSele
             eventHandlers={{
                 click: () => onPinSelect(pin.id)
             }}
-        />
+        >
+          <Tooltip
+            direction="top"
+            offset={[0, -10]}
+            opacity={1}
+            className="custom-tooltip"
+          >
+            <div className="font-medium text-slate-800">{pin.name}</div>
+            <div className="text-xs text-slate-500">{pin.time_slot}</div>
+          </Tooltip>
+        </Marker>
       ))}
     </MapContainer>
   );

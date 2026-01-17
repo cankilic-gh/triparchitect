@@ -25,6 +25,24 @@
   z-index: 3;
 }
 
+/* Custom tooltip styling */
+.custom-tooltip {
+  background: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 8px 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  font-family: inherit !important;
+}
+
+.custom-tooltip::before {
+  border-top-color: white !important;
+}
+
+.leaflet-tooltip-top:before {
+  border-top-color: white !important;
+}
+
 /* Custom scrollbar for glassmorphism panels */
 .glass-scroll::-webkit-scrollbar {
   width: 6px;
