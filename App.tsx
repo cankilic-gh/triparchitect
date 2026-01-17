@@ -441,16 +441,14 @@ export default function App() {
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h5 className="text-sm font-medium text-slate-700 truncate">{pin.name}</h5>
-                            <div className="flex items-center gap-2 mt-0.5">
-                              <div className="p-0.5 rounded bg-white/50 text-slate-500">
-                                {getCategoryIcon(pin.category_icon, "w-3 h-3")}
-                              </div>
-                              <span className="text-xs text-slate-400">{pin.time_slot}</span>
+                            <div className="flex items-center justify-between gap-2">
+                              <h5 className="text-sm font-medium text-slate-700 truncate">{pin.name}</h5>
+                              <span className="text-xs text-slate-300 font-medium shrink-0">{pin.cost_tier}</span>
                             </div>
-                          </div>
-                          <div className="text-xs text-slate-300 font-medium">
-                            {pin.cost_tier}
+                            <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">{pin.short_description}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <span className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{pin.time_slot}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
