@@ -11,22 +11,16 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } 
 
 const TRIP_DATA_STORAGE_KEY = 'triparchitect_trip_data';
 
-// Generate image URL based on search query
-const getImageUrl = (query: string, size: number = 300) => {
-  const keywords = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, '').trim());
-  return `https://source.unsplash.com/${size}x${size}/?${keywords},travel`;
-};
-
-// Fallback image based on category
-const getCategoryFallback = (category: string) => {
-  const colors: Record<string, string> = {
-    food: 'from-rose-200 to-orange-200',
-    nature: 'from-emerald-200 to-teal-200',
-    sights: 'from-amber-200 to-yellow-200',
-    shopping: 'from-purple-200 to-pink-200',
-    activity: 'from-blue-200 to-cyan-200',
+// Category colors for card backgrounds
+const getCategoryColors = (category: string) => {
+  const colors: Record<string, { bg: string; icon: string }> = {
+    food: { bg: 'from-rose-400 to-orange-300', icon: 'text-white' },
+    nature: { bg: 'from-emerald-400 to-teal-300', icon: 'text-white' },
+    sights: { bg: 'from-amber-400 to-yellow-300', icon: 'text-white' },
+    shopping: { bg: 'from-purple-400 to-pink-300', icon: 'text-white' },
+    activity: { bg: 'from-blue-400 to-cyan-300', icon: 'text-white' },
   };
-  return colors[category] || 'from-slate-200 to-gray-200';
+  return colors[category] || { bg: 'from-slate-400 to-gray-300', icon: 'text-white' };
 };
 
 export default function App() {
@@ -327,18 +321,11 @@ export default function App() {
                           <GripVertical className="w-5 h-5" />
                         </div>
 
-                        {/* Image Thumbnail */}
-                        <div className={`w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br ${getCategoryFallback(pin.category_icon)} shadow-inner flex items-center justify-center`}>
-                          <img
-                              src={getImageUrl(pin.image_search_query, 300)}
-                              alt={pin.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                          />
+                        {/* Category Icon Thumbnail */}
+                        <div className={`w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-xl overflow-hidden bg-gradient-to-br ${getCategoryColors(pin.category_icon).bg} shadow-lg flex items-center justify-center`}>
+                          <div className={`${getCategoryColors(pin.category_icon).icon} opacity-90`}>
+                            {getCategoryIcon(pin.category_icon, "w-8 h-8 md:w-10 md:h-10")}
+                          </div>
                         </div>
 
                         {/* Content */}
@@ -448,17 +435,10 @@ export default function App() {
                           <div className="cursor-grab active:cursor-grabbing text-slate-300 group-hover:text-slate-500">
                             <GripVertical className="w-4 h-4" />
                           </div>
-                          <div className={`w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br ${getCategoryFallback(pin.category_icon)} flex items-center justify-center`}>
-                            <img
-                              src={getImageUrl(pin.image_search_query, 150)}
-                              alt={pin.name}
-                              className="w-full h-full object-cover"
-                              loading="lazy"
-                              onError={(e) => {
-                                const target = e.target as HTMLImageElement;
-                                target.style.display = 'none';
-                              }}
-                            />
+                          <div className={`w-10 h-10 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br ${getCategoryColors(pin.category_icon).bg} shadow flex items-center justify-center`}>
+                            <div className={`${getCategoryColors(pin.category_icon).icon} opacity-90`}>
+                              {getCategoryIcon(pin.category_icon, "w-5 h-5")}
+                            </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <h5 className="text-sm font-medium text-slate-700 truncate">{pin.name}</h5>
