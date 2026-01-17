@@ -1,0 +1,94 @@
+/* TripArchitect Global Styles */
+
+/* Ensure map fills its container */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Custom scrollbar for glassmorphism panels */
+.glass-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.glass-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+.glass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+}
+.glass-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* Hide default Leaflet marker background for custom divs */
+.custom-leaflet-icon {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Hide horizontal scrollbar for day tabs */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Fade in animation */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}
+
+/* Drag and drop styles */
+.dragging {
+  opacity: 0.5;
+  transform: scale(1.02);
+}
+
+.drag-over {
+  border: 2px dashed #f43f5e !important;
+  background: rgba(244, 63, 94, 0.05);
+}
+
+.drop-zone {
+  transition: all 0.2s ease;
+  min-height: 80px;
+  border: 2px dashed transparent;
+  border-radius: 1rem;
+}
+
+.drop-zone.active {
+  border-color: rgba(244, 63, 94, 0.3);
+  background: rgba(244, 63, 94, 0.02);
+}
+
+/* Card image fallback styling */
+.card-image {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.card-image img {
+  transition: opacity 0.3s ease;
+}
+
+.card-image img.loaded {
+  opacity: 1;
+}
+
+.card-image img.loading {
+  opacity: 0;
+}

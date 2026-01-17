@@ -64,16 +64,19 @@ const createCustomIcon = (type: any, isSelected: boolean) => {
 };
 
 export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSelect }) => {
+  // Filter only assigned pins (day_index > 0)
+  const visiblePins = pins.filter(p => p.day_index > 0);
+
   // Default center (Rome) if no pins
-  const center: [number, number] = pins.length > 0 
-    ? [pins[0].coordinates.lat, pins[0].coordinates.lng] 
+  const center: [number, number] = visiblePins.length > 0
+    ? [visiblePins[0].coordinates.lat, visiblePins[0].coordinates.lng]
     : [41.9028, 12.4964];
 
   return (
-    <MapContainer 
-        center={center} 
-        zoom={13} 
-        style={{ height: "100%", width: "100%", zIndex: 0 }}
+    <MapContainer
+        center={center}
+        zoom={13}
+        style={{ height: "100%", width: "100%", zIndex: 1, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         zoomControl={false}
         className="bg-stone-100"
     >
@@ -82,11 +85,11 @@ export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSele
         url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
       />
       
-      <MapController pins={pins} selectedPinId={selectedPinId} />
+      <MapController pins={visiblePins} selectedPinId={selectedPinId} />
 
-      {pins.map((pin) => (
-        <Marker 
-            key={pin.id} 
+      {visiblePins.map((pin) => (
+        <Marker
+            key={pin.id}
             position={[pin.coordinates.lat, pin.coordinates.lng]}
             icon={createCustomIcon(pin.category_icon, pin.id === selectedPinId)}
             eventHandlers={{

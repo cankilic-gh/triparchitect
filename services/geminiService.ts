@@ -23,6 +23,15 @@ Generate a strict JSON dataset that populates the "Trip Canvas".
 2.  **Kid/Family Check:** Prioritize appropriately based on party size.
 3.  **Visual Cues:** Provide a 'image_search_query' for visually stunning background images.
 
+# TWO TYPES OF PINS
+You MUST generate TWO categories of map_pins:
+1. **Scheduled Pins (day_index = 1, 2, 3...):** 3-4 activities per day that form the main itinerary
+2. **Recommended Alternatives (day_index = 0):** 15-20 EXTRA places that are NOT in the daily schedule but are great alternatives
+   - Include diverse categories: hidden gems, local favorites, backup restaurants, scenic spots, museums, parks, cafes
+   - Mix different price tiers ($, $$, $$$)
+   - Cover various time slots so user can swap activities
+   - These appear in a "Recommended Places" pool that users can drag into their itinerary
+
 # OUTPUT SCHEMA
 Return ONLY a JSON object matching the requested schema.
 `;
@@ -40,10 +49,15 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
 
     Generate a complete trip plan with:
     - trip_meta: title, duration, total_estimated_cost, vibe_tags (max 5 tags)
-    - map_pins: array of 3-4 locations per day with coordinates, descriptions
-    - daily_flow: array with one entry per day linking to pin_ids
+    - map_pins: This array MUST contain TWO types of pins:
+      1. SCHEDULED pins (day_index = 1, 2, 3...): 3-4 activities per day for the main itinerary
+      2. RECOMMENDED pins (day_index = 0): AT LEAST 15-20 alternative places NOT in daily schedule
+         Include: hidden gems, alternative restaurants, scenic viewpoints, local markets, museums, parks, cafes, nightlife
+         Mix all categories (food, sights, nature, shopping, activity) and price tiers ($, $$, $$$)
+    - daily_flow: array with one entry per day linking ONLY to scheduled pin_ids (not recommended ones)
 
-    All three sections are REQUIRED.
+    IMPORTANT: The recommended pins (day_index = 0) are alternatives users can drag into their itinerary.
+    Generate diverse options so users have real choices. All three sections are REQUIRED.
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence
