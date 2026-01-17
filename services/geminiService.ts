@@ -37,13 +37,18 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
     Duration: ${prefs.duration} days
     Party Size: ${prefs.partySize}
     Interests: ${prefs.interests}
-    
-    Please generate a trip plan following the System Role and Output Schema.
+
+    Generate a complete trip plan with:
+    - trip_meta: title, duration, total_estimated_cost, vibe_tags (max 5 tags)
+    - map_pins: array of 3-4 locations per day with coordinates, descriptions
+    - daily_flow: array with one entry per day linking to pin_ids
+
+    All three sections are REQUIRED.
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence
   const response = await ai.models.generateContent({
-    model: 'gemini-3-flash-preview',
+    model: 'gemini-2.0-flash-001',
     contents: userPrompt,
     config: {
       systemInstruction: SYSTEM_PROMPT,
@@ -61,13 +66,15 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
                 properties: {
                   currency: { type: Type.STRING },
                   amount: { type: Type.NUMBER }
-                }
+                },
+                required: ["currency", "amount"]
               },
               vibe_tags: {
                 type: Type.ARRAY,
                 items: { type: Type.STRING }
               }
-            }
+            },
+            required: ["title", "duration", "total_estimated_cost", "vibe_tags"]
           },
           map_pins: {
             type: Type.ARRAY,
@@ -82,7 +89,8 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
                   properties: {
                     lat: { type: Type.NUMBER },
                     lng: { type: Type.NUMBER }
-                  }
+                  },
+                  required: ["lat", "lng"]
                 },
                 category_icon: { type: Type.STRING, enum: ["food", "sights", "nature", "shopping", "activity"] },
                 short_description: { type: Type.STRING },
@@ -90,7 +98,8 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
                 time_slot: { type: Type.STRING, enum: ["Morning", "Lunch", "Afternoon", "Dinner"] },
                 logistics_note: { type: Type.STRING },
                 cost_tier: { type: Type.STRING, enum: ["$", "$$", "$$$"] }
-              }
+              },
+              required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier"]
             }
           },
           daily_flow: {
@@ -105,17 +114,30 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
                   type: Type.ARRAY,
                   items: { type: Type.STRING }
                 }
-              }
+              },
+              required: ["day_num", "theme", "pin_ids"]
             }
           }
-        }
+        },
+        required: ["trip_meta", "map_pins", "daily_flow"]
       }
     }
   });
 
-  if (!response.text) {
+  const text = response.text;
+  console.log('API Response:', text);
+
+  if (!text) {
     throw new Error("No response from AI");
   }
 
-  return JSON.parse(response.text) as TripData;
+  const data = JSON.parse(text) as TripData;
+
+  // Validate required fields
+  if (!data.map_pins || !data.daily_flow || !data.trip_meta) {
+    console.error('Invalid response structure:', data);
+    throw new Error("Invalid response structure from AI");
+  }
+
+  return data;
 };

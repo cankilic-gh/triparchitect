@@ -23,8 +23,9 @@ export default function App() {
       setTripData(data);
       setViewState('result');
       // Select first pin of first day
-      const firstPin = data.daily_flow[0]?.pin_ids[0];
+      const firstPin = data.daily_flow?.[0]?.pin_ids?.[0];
       if (firstPin) setSelectedPinId(firstPin);
+      if (data.daily_flow?.[0]?.day_num) setActiveDay(data.daily_flow[0].day_num);
     } catch (e) {
       console.error(e);
       setError("Failed to generate trip. Please check your API key and try again.");
