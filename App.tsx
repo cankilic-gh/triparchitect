@@ -535,23 +535,25 @@ export default function App() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-md"
             onClick={() => setShowSearchModal(false)}
           />
 
           {/* Modal Content */}
           <div className="relative z-10 w-full max-w-md animate-fade-in">
-            <div className="relative">
-              <button
-                onClick={() => setShowSearchModal(false)}
-                className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+            {/* Close button */}
+            <button
+              onClick={() => setShowSearchModal(false)}
+              className="absolute -top-3 -right-3 z-20 p-2 bg-white rounded-full shadow-lg text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-              <div className="text-center mb-4">
-                <h2 className="text-2xl font-serif text-white mb-1">New Trip</h2>
-                <p className="text-white/70 text-sm">Plan your next adventure</p>
+            {/* Modal Card */}
+            <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl p-6 border border-white">
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-serif text-slate-800 mb-1">New Trip</h2>
+                <p className="text-slate-500 text-sm">Plan your next adventure</p>
               </div>
 
               <InputForm onSubmit={handleGenerate} isLoading={viewState === 'loading'} isModal={true} />

@@ -11,27 +11,47 @@ interface TripMapProps {
   onPinSelect: (id: string) => void;
 }
 
-// Component to handle map bounds updates
+// Component to handle map bounds updates and size invalidation
 const MapController = ({ pins, selectedPinId }: { pins: MapPin[], selectedPinId: string | null }) => {
   const map = useMap();
+
+  // Invalidate size on mount and when window resizes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+
+    const handleResize = () => map.invalidateSize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [map]);
 
   useEffect(() => {
     if (pins.length === 0) return;
 
-    if (selectedPinId) {
+    // Small delay to ensure map is ready
+    const timer = setTimeout(() => {
+      if (selectedPinId) {
         const pin = pins.find(p => p.id === selectedPinId);
         if (pin) {
-            map.flyTo([pin.coordinates.lat, pin.coordinates.lng], 15, {
-                animate: true,
-                duration: 1.5
-            });
+          map.flyTo([pin.coordinates.lat, pin.coordinates.lng], 15, {
+            animate: true,
+            duration: 1.5
+          });
         }
-    } else {
+      } else {
         const bounds = L.latLngBounds(pins.map(p => [p.coordinates.lat, p.coordinates.lng]));
         if (bounds.isValid()) {
-             map.fitBounds(bounds, { padding: [50, 50] });
+          map.fitBounds(bounds, { padding: [50, 50] });
         }
-    }
+      }
+    }, 200);
+
+    return () => clearTimeout(timer);
   }, [pins, selectedPinId, map]);
 
   return null;
@@ -76,9 +96,10 @@ export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSele
     <MapContainer
         center={center}
         zoom={13}
-        style={{ height: "100%", width: "100%", zIndex: 1, position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        style={{ height: "100%", width: "100%", position: "absolute", inset: 0 }}
         zoomControl={false}
-        className="bg-stone-100"
+        scrollWheelZoom={true}
+        className="bg-stone-100 z-0"
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'

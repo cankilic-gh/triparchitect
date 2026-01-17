@@ -48,17 +48,8 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading, isMod
     onSubmit({ destination, duration, partySize, interests }, apiKey);
   };
 
-  return (
-    <div className={`w-full ${isModal ? 'max-w-md' : 'max-w-lg'} mx-auto`}>
-      {!isModal && (
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-serif text-slate-800 mb-2">TripArchitect</h1>
-          <p className="text-slate-500">Design your perfect curated journey.</p>
-        </div>
-      )}
-
-      <GlassCard className={isModal ? "p-6" : "p-8"}>
-        <form onSubmit={handleSubmit} className={isModal ? "space-y-4" : "space-y-6"}>
+  const formContent = (
+    <form onSubmit={handleSubmit} className={isModal ? "space-y-4" : "space-y-6"}>
           
           <div className="space-y-2">
             <label className="flex items-center text-sm font-medium text-slate-600 gap-2">
@@ -188,6 +179,20 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading, isMod
           </button>
 
         </form>
+  );
+
+  if (isModal) {
+    return formContent;
+  }
+
+  return (
+    <div className="w-full max-w-lg mx-auto">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl font-serif text-slate-800 mb-2">TripArchitect</h1>
+        <p className="text-slate-500">Design your perfect curated journey.</p>
+      </div>
+      <GlassCard className="p-8">
+        {formContent}
       </GlassCard>
     </div>
   );

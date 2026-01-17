@@ -2,9 +2,27 @@
 
 /* Ensure map fills its container */
 .leaflet-container {
-  height: 100%;
-  width: 100%;
+  height: 100% !important;
+  width: 100% !important;
   z-index: 0;
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* Fix map tile loading */
+.leaflet-tile-pane {
+  z-index: 1;
+}
+
+.leaflet-overlay-pane {
+  z-index: 2;
+}
+
+.leaflet-marker-pane {
+  z-index: 3;
 }
 
 /* Custom scrollbar for glassmorphism panels */
