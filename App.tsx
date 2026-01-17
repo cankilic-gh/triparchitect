@@ -11,6 +11,24 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } 
 
 const TRIP_DATA_STORAGE_KEY = 'triparchitect_trip_data';
 
+// Generate image URL based on search query
+const getImageUrl = (query: string, size: number = 300) => {
+  const keywords = encodeURIComponent(query.replace(/[^a-zA-Z0-9 ]/g, '').trim());
+  return `https://source.unsplash.com/${size}x${size}/?${keywords},travel`;
+};
+
+// Fallback image based on category
+const getCategoryFallback = (category: string) => {
+  const colors: Record<string, string> = {
+    food: 'from-rose-200 to-orange-200',
+    nature: 'from-emerald-200 to-teal-200',
+    sights: 'from-amber-200 to-yellow-200',
+    shopping: 'from-purple-200 to-pink-200',
+    activity: 'from-blue-200 to-cyan-200',
+  };
+  return colors[category] || 'from-slate-200 to-gray-200';
+};
+
 export default function App() {
   const [viewState, setViewState] = useState<'landing' | 'loading' | 'result'>('landing');
   const [tripData, setTripData] = useState<TripData | null>(null);
@@ -310,9 +328,9 @@ export default function App() {
                         </div>
 
                         {/* Image Thumbnail */}
-                        <div className="w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 shadow-inner card-image">
+                        <div className={`w-20 h-20 md:w-24 md:h-24 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br ${getCategoryFallback(pin.category_icon)} shadow-inner flex items-center justify-center`}>
                           <img
-                              src={`https://image.pollinations.ai/prompt/${encodeURIComponent(pin.image_search_query + ', travel photography, beautiful scenery')}?width=256&height=256&nologo=true&seed=${pin.id}`}
+                              src={getImageUrl(pin.image_search_query, 300)}
                               alt={pin.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
@@ -430,9 +448,9 @@ export default function App() {
                           <div className="cursor-grab active:cursor-grabbing text-slate-300 group-hover:text-slate-500">
                             <GripVertical className="w-4 h-4" />
                           </div>
-                          <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
+                          <div className={`w-12 h-12 shrink-0 rounded-lg overflow-hidden bg-gradient-to-br ${getCategoryFallback(pin.category_icon)} flex items-center justify-center`}>
                             <img
-                              src={`https://image.pollinations.ai/prompt/${encodeURIComponent(pin.image_search_query + ', travel photo')}?width=128&height=128&nologo=true&seed=${pin.id}`}
+                              src={getImageUrl(pin.image_search_query, 150)}
                               alt={pin.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
