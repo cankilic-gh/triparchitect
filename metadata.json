@@ -1,0 +1,7 @@
+{
+  "name": "TripArchitect",
+  "description": "A high-end, visual travel planning application powered by Gemini. Features a split-screen interface with interactive maps and glassmorphism UI.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
