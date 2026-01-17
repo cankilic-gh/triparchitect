@@ -1,10 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { TripData, UserPreferences } from "../types";
 
-// Initialize Gemini
-// NOTE: In a real environment, allow the user to input this or handle it securely.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-
 const SYSTEM_PROMPT = `
 You are "TripArchitect Core," the backend intelligence for a high-end, visual travel planning web application.
 Your output drives a frontend interface that features a **Split-Screen Layout**:
@@ -36,10 +32,12 @@ You MUST generate TWO categories of map_pins:
 Return ONLY a JSON object matching the requested schema.
 `;
 
-export const generateTrip = async (prefs: UserPreferences): Promise<TripData> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API Key is missing");
+export const generateTrip = async (prefs: UserPreferences, apiKey: string): Promise<TripData> => {
+  if (!apiKey) {
+    throw new Error("API Key is missing. Please enter your Gemini API key.");
   }
+
+  const ai = new GoogleGenAI({ apiKey });
 
   const userPrompt = `
     Destination: ${prefs.destination}

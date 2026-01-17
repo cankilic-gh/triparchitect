@@ -5,9 +5,11 @@ import { TripData, UserPreferences, MapPin } from './types';
 import { TripMap } from './components/TripMap';
 import { GlassCard } from './components/GlassCard';
 import { getCategoryIcon } from './components/Icons';
-import { Clock, Navigation, Banknote, ArrowLeft, Star, Download, Trash2, GripVertical, Sparkles, ChevronDown, Filter } from 'lucide-react';
+import { Clock, Navigation, Banknote, ArrowLeft, Star, Download, Trash2, GripVertical, Sparkles, ChevronDown, Filter, X, Search } from 'lucide-react';
 import { CategoryIcon } from './types';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
+
+const TRIP_DATA_STORAGE_KEY = 'triparchitect_trip_data';
 
 export default function App() {
   const [viewState, setViewState] = useState<'landing' | 'loading' | 'result'>('landing');
@@ -19,12 +21,41 @@ export default function App() {
   const [dragOverDay, setDragOverDay] = useState<number | null>(null);
   const [recommendedLimit, setRecommendedLimit] = useState<number>(8);
   const [categoryFilter, setCategoryFilter] = useState<CategoryIcon | 'all'>('all');
+  const [showSearchModal, setShowSearchModal] = useState(false);
 
-  const handleGenerate = async (prefs: UserPreferences) => {
+  // Load trip data from localStorage on mount
+  useEffect(() => {
+    const savedData = localStorage.getItem(TRIP_DATA_STORAGE_KEY);
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData) as TripData;
+        if (parsed.trip_meta && parsed.map_pins && parsed.daily_flow) {
+          setTripData(parsed);
+          setViewState('result');
+          const firstPin = parsed.daily_flow?.[0]?.pin_ids?.[0];
+          if (firstPin) setSelectedPinId(firstPin);
+          if (parsed.daily_flow?.[0]?.day_num) setActiveDay(parsed.daily_flow[0].day_num);
+        }
+      } catch (e) {
+        console.error('Failed to parse saved trip data:', e);
+        localStorage.removeItem(TRIP_DATA_STORAGE_KEY);
+      }
+    }
+  }, []);
+
+  // Save trip data to localStorage whenever it changes
+  useEffect(() => {
+    if (tripData && viewState === 'result') {
+      localStorage.setItem(TRIP_DATA_STORAGE_KEY, JSON.stringify(tripData));
+    }
+  }, [tripData, viewState]);
+
+  const handleGenerate = async (prefs: UserPreferences, apiKey: string) => {
     setViewState('loading');
+    setShowSearchModal(false);
     setError(null);
     try {
-      const data = await generateTrip(prefs);
+      const data = await generateTrip(prefs, apiKey);
       setTripData(data);
       setViewState('result');
       // Reset filters and limits
@@ -34,10 +65,10 @@ export default function App() {
       const firstPin = data.daily_flow?.[0]?.pin_ids?.[0];
       if (firstPin) setSelectedPinId(firstPin);
       if (data.daily_flow?.[0]?.day_num) setActiveDay(data.daily_flow[0].day_num);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      setError("Failed to generate trip. Please check your API key and try again.");
-      setViewState('landing');
+      setError(e.message || "Failed to generate trip. Please check your API key and try again.");
+      setViewState(tripData ? 'result' : 'landing');
     }
   };
 
@@ -183,11 +214,12 @@ export default function App() {
              
              {/* Map Overlay Controls */}
              <div className="absolute top-4 left-4 z-[400]">
-                <button 
-                  onClick={() => setViewState('landing')}
-                  className="bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:bg-white transition-colors text-slate-700"
+                <button
+                  onClick={() => setShowSearchModal(true)}
+                  className="bg-white/90 backdrop-blur-md p-3 rounded-full shadow-lg hover:bg-white transition-colors text-slate-700 flex items-center gap-2"
+                  title="New Search"
                 >
-                  <ArrowLeft className="w-5 h-5" />
+                  <Search className="w-5 h-5" />
                 </button>
              </div>
           </div>
@@ -494,6 +526,42 @@ export default function App() {
                 </div>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Search Modal */}
+      {showSearchModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/30 backdrop-blur-sm"
+            onClick={() => setShowSearchModal(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative z-10 w-full max-w-md animate-fade-in">
+            <div className="relative">
+              <button
+                onClick={() => setShowSearchModal(false)}
+                className="absolute -top-12 right-0 p-2 text-white/80 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+
+              <div className="text-center mb-4">
+                <h2 className="text-2xl font-serif text-white mb-1">New Trip</h2>
+                <p className="text-white/70 text-sm">Plan your next adventure</p>
+              </div>
+
+              <InputForm onSubmit={handleGenerate} isLoading={viewState === 'loading'} isModal={true} />
+
+              {error && (
+                <div className="mt-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 text-sm">
+                  {error}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
