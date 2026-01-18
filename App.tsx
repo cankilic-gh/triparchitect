@@ -196,10 +196,10 @@ export default function App() {
 
       {/* RESULT STATE */}
       {viewState === 'result' && tripData && (
-        <div className="h-full w-full flex flex-col md:flex-row relative z-10">
-          
+        <div className="absolute inset-0 flex flex-col md:flex-row z-10">
+
           {/* LEFT: MAP (Stacked top on mobile, Left on desktop) */}
-          <div className="h-[40vh] md:h-full md:w-[55%] relative order-1 md:order-1 shadow-2xl z-0" style={{ minHeight: '300px' }}>
+          <div className="h-[40vh] md:h-auto md:flex-[55] relative order-1 md:order-1 shadow-2xl z-0">
              <TripMap 
                 pins={tripData.map_pins} 
                 selectedPinId={selectedPinId} 
@@ -224,10 +224,10 @@ export default function App() {
           </div>
 
           {/* RIGHT: CONTENT (Stacked bottom on mobile, Right on desktop) */}
-          <div className="h-[60vh] md:h-full md:w-[45%] bg-white/30 backdrop-blur-md border-l border-white/50 flex flex-col order-2 md:order-2 overflow-hidden">
+          <div className="h-[60vh] md:h-auto md:flex-[45] bg-white/30 backdrop-blur-md border-l border-white/50 flex flex-col order-2 md:order-2 overflow-hidden">
 
             {/* Header / Meta */}
-            <div className="p-6 md:p-8 pb-2 md:pb-4 border-b border-white/20 shrink-0">
+            <div className="p-6 md:p-8 pb-4 border-b border-white/20 shrink-0">
               <div className="flex justify-between items-start mb-4">
                   <div>
                     <h1 className="text-2xl md:text-3xl font-serif text-slate-800 leading-tight mb-2">
