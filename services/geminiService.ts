@@ -22,10 +22,11 @@ Generate a strict JSON dataset that populates the "Trip Canvas".
 # TWO TYPES OF PINS
 You MUST generate TWO categories of map_pins:
 
-1. **Scheduled Pins (day_index = 1, 2, 3...):** 6 items per day:
-   - 3 MEALS: Breakfast (Morning), Lunch (Lunch), Dinner (Dinner) - all with category_icon: "food"
-   - 3 ACTIVITIES: sights, nature, shopping, or activity - spread across Morning, Afternoon time slots
-   - Order in daily_flow: Breakfast → Morning Activity → Lunch → Afternoon Activity 1 → Afternoon Activity 2 → Dinner
+1. **Scheduled Pins (day_index = 1, 2, 3...):** 4 items per day:
+   - Breakfast (time_slot: "Morning", category_icon: "food")
+   - Lunch (time_slot: "Lunch", category_icon: "food")
+   - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+   - Dinner (time_slot: "Dinner", category_icon: "food")
 
 2. **Recommended Alternatives (day_index = 0):** 30+ EXTRA places NOT in daily schedule:
    - PRIORITY ORDER (list these first in the array):
@@ -65,31 +66,28 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
-      1. SCHEDULED pins for days 1 through ${prefs.duration}: 6 items PER DAY (total ${prefs.duration * 6} scheduled pins):
-         - Breakfast spot (time_slot: "Morning", category_icon: "food")
-         - Morning activity (time_slot: "Morning", category_icon: sights/nature/activity)
-         - Lunch spot (time_slot: "Lunch", category_icon: "food")
-         - Afternoon activity 1 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
-         - Afternoon activity 2 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
-         - Dinner spot (time_slot: "Dinner", category_icon: "food")
+      1. SCHEDULED pins for days 1 through ${prefs.duration}: 4 items PER DAY (total ${prefs.duration * 4} scheduled pins):
+         - Breakfast (time_slot: "Morning", category_icon: "food")
+         - Lunch (time_slot: "Lunch", category_icon: "food")
+         - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+         - Dinner (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): AT LEAST 30 alternative places, ordered as:
-         - FIRST 5-6: Coffee shops & specialty cafes
-         - NEXT 5-6: Dessert spots, bakeries, pastry shops
-         - THEN: Alternative restaurants, hidden gems, extra sights, museums, parks, nightlife
-         Mix all price tiers ($, $$, $$$) and time slots
+      2. RECOMMENDED pins (day_index = 0): ${Math.min(20, Math.max(10, 30 - prefs.duration * 2))} alternative places:
+         - Coffee shops, cafes, dessert spots, bakeries
+         - Alternative restaurants, hidden gems
+         Mix all price tiers ($, $$, $$$)
 
-    - daily_flow: MUST have EXACTLY ${prefs.duration} entries (day_num 1 to ${prefs.duration}), pin_ids in chronological order
+    - daily_flow: EXACTLY ${prefs.duration} entries (day_num 1 to ${prefs.duration})
 
-    IMPORTANT: Generate for ALL ${prefs.duration} days, not less!
+    CRITICAL: You MUST create entries for ALL ${prefs.duration} days. Do not stop early!
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence
   const response = await ai.models.generateContent({
-    model: 'gemini-2.0-flash',
+    model: 'gemini-1.5-flash',
     contents: userPrompt,
     config: {
-      maxOutputTokens: 8192,
+      maxOutputTokens: 16384,
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
       responseSchema: {
