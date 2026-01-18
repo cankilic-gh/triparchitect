@@ -55,15 +55,17 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
 
   const userPrompt = `
     Destination: ${prefs.destination}
-    Duration: ${prefs.duration} days
+    Duration: EXACTLY ${prefs.duration} days (day_index 1 to ${prefs.duration})
     Party Size: ${prefs.partySize}
     Interests: ${prefs.interests}
 
+    CRITICAL: You MUST generate a plan for EXACTLY ${prefs.duration} days. The daily_flow array MUST have ${prefs.duration} entries.
+
     Generate a complete trip plan with:
-    - trip_meta: title, duration, vibe_tags (max 5 tags)
+    - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
-      1. SCHEDULED pins (day_index = 1, 2, 3...): 6 items PER DAY:
+      1. SCHEDULED pins for days 1 through ${prefs.duration}: 6 items PER DAY (total ${prefs.duration * 6} scheduled pins):
          - Breakfast spot (time_slot: "Morning", category_icon: "food")
          - Morning activity (time_slot: "Morning", category_icon: sights/nature/activity)
          - Lunch spot (time_slot: "Lunch", category_icon: "food")
@@ -77,10 +79,9 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
          - THEN: Alternative restaurants, hidden gems, extra sights, museums, parks, nightlife
          Mix all price tiers ($, $$, $$$) and time slots
 
-    - daily_flow: array with one entry per day, pin_ids in chronological order (breakfast → dinner)
+    - daily_flow: MUST have EXACTLY ${prefs.duration} entries (day_num 1 to ${prefs.duration}), pin_ids in chronological order
 
-    IMPORTANT: Users can drag recommended items into their schedule. Prioritize coffee & dessert at top of recommended list.
-    All three sections are REQUIRED.
+    IMPORTANT: Generate for ALL ${prefs.duration} days, not less!
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence

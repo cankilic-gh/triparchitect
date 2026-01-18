@@ -77,7 +77,7 @@ export const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading, isMod
                 onChange={(e) => setDuration(Number(e.target.value))}
                 className="w-full bg-white/50 border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-200"
               >
-                {[1,2,3,4,5,7,10,14].map(d => (
+                {[1,2,3,4,5,6,7,8,9,10,12,14,15].map(d => (
                     <option key={d} value={d}>{d} Days</option>
                 ))}
               </select>
