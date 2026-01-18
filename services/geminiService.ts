@@ -32,12 +32,15 @@ You MUST generate TWO categories of map_pins:
 Return ONLY a JSON object matching the requested schema.
 `;
 
-export const generateTrip = async (prefs: UserPreferences, apiKey: string): Promise<TripData> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please enter your Gemini API key.");
+// API key from environment variable (embedded at build time)
+const API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+
+export const generateTrip = async (prefs: UserPreferences): Promise<TripData> => {
+  if (!API_KEY) {
+    throw new Error("API Key is not configured.");
   }
 
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
 
   const userPrompt = `
     Destination: ${prefs.destination}
