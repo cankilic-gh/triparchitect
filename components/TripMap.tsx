@@ -9,6 +9,7 @@ interface TripMapProps {
   pins: MapPin[];
   selectedPinId: string | null;
   onPinSelect: (id: string) => void;
+  activeDay: number;
 }
 
 // Component to handle map bounds updates and size invalidation
@@ -58,32 +59,35 @@ const MapController = ({ pins, selectedPinId }: { pins: MapPin[], selectedPinId:
 };
 
 // Custom DivIcon creator using static markup to avoid async rendering issues in Leaflet
-const createCustomIcon = (type: any, isSelected: boolean) => {
+const createCustomIcon = (type: any, isSelected: boolean, isActiveDay: boolean) => {
     // Determine color based on type
     let bgClass = "bg-slate-800";
     if (type === 'food') bgClass = "bg-rose-400";
     if (type === 'nature') bgClass = "bg-emerald-400";
     if (type === 'sights') bgClass = "bg-amber-400";
-    
-    // Icon sizing logic
-    const sizeClass = isSelected ? "w-10 h-10 ring-4 ring-white scale-110" : "w-8 h-8";
-    
+
+    // Icon sizing logic - smaller and faded for non-active days
+    const sizeClass = isSelected ? "w-10 h-10 ring-4 ring-white scale-110" : isActiveDay ? "w-8 h-8" : "w-6 h-6";
+    const opacityClass = isActiveDay ? "opacity-100" : "opacity-40";
+
     // Generate static HTML for the icon
     const iconHtml = renderToStaticMarkup(
-        <div className={`flex items-center justify-center ${bgClass} ${sizeClass} rounded-full text-white shadow-xl border-2 border-white/20`}>
-             {getCategoryIcon(type, "w-4 h-4")}
+        <div className={`flex items-center justify-center ${bgClass} ${sizeClass} ${opacityClass} rounded-full text-white shadow-xl border-2 border-white/20 transition-all`}>
+             {getCategoryIcon(type, isActiveDay ? "w-4 h-4" : "w-3 h-3")}
         </div>
     );
-    
+
+    const iconSize = isSelected ? 40 : isActiveDay ? 32 : 24;
+
     return L.divIcon({
         html: iconHtml,
-        className: 'custom-leaflet-icon', // Defined in index.html to remove default styles
-        iconSize: isSelected ? [40, 40] : [32, 32],
-        iconAnchor: isSelected ? [20, 20] : [16, 16]
+        className: 'custom-leaflet-icon',
+        iconSize: [iconSize, iconSize],
+        iconAnchor: [iconSize / 2, iconSize / 2]
     });
 };
 
-export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSelect }) => {
+export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSelect, activeDay }) => {
   // Filter only assigned pins (day_index > 0)
   const visiblePins = pins.filter(p => p.day_index > 0);
 
@@ -112,7 +116,7 @@ export const TripMap: React.FC<TripMapProps> = ({ pins, selectedPinId, onPinSele
         <Marker
             key={pin.id}
             position={[pin.coordinates.lat, pin.coordinates.lng]}
-            icon={createCustomIcon(pin.category_icon, pin.id === selectedPinId)}
+            icon={createCustomIcon(pin.category_icon, pin.id === selectedPinId, pin.day_index === activeDay)}
             eventHandlers={{
                 click: () => onPinSelect(pin.id)
             }}

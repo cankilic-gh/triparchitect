@@ -304,15 +304,16 @@ export default function App() {
 
           {/* LEFT: MAP (Stacked top on mobile, Left on desktop) */}
           <div className="h-[40vh] md:h-auto md:flex-[55] relative order-1 md:order-1 shadow-2xl z-0">
-             <TripMap 
-                pins={tripData.map_pins} 
-                selectedPinId={selectedPinId} 
+             <TripMap
+                pins={tripData.map_pins}
+                selectedPinId={selectedPinId}
+                activeDay={activeDay}
                 onPinSelect={(id) => {
                     setSelectedPinId(id);
                     // Also switch day if necessary
                     const pin = tripData.map_pins.find(p => p.id === id);
                     if (pin) setActiveDay(pin.day_index);
-                }} 
+                }}
              />
              
              {/* Map Overlay Controls */}
