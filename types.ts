@@ -22,6 +22,7 @@ export interface MapPin {
   time_slot: TimeSlot;
   logistics_note: string;
   cost_tier: CostTier;
+  rating: number;
 }
 
 export interface DailyFlow {

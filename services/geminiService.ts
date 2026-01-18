@@ -38,6 +38,10 @@ You MUST generate TWO categories of map_pins:
    - Mix all price tiers ($, $$, $$$)
    - Cover various time slots so user can swap activities
 
+# RATING
+For each pin, provide a realistic "rating" (1.0-5.0) based on the place's general reputation and popularity.
+Well-known popular spots: 4.2-4.8, Hidden gems: 3.8-4.3, Average places: 3.5-4.0
+
 # OUTPUT SCHEMA
 Return ONLY a JSON object matching the requested schema.
 `;
@@ -122,9 +126,10 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
                 image_search_query: { type: Type.STRING },
                 time_slot: { type: Type.STRING, enum: ["Morning", "Lunch", "Afternoon", "Dinner"] },
                 logistics_note: { type: Type.STRING },
-                cost_tier: { type: Type.STRING, enum: ["$", "$$", "$$$"] }
+                cost_tier: { type: Type.STRING, enum: ["$", "$$", "$$$"] },
+                rating: { type: Type.NUMBER }
               },
-              required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier"]
+              required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier", "rating"]
             }
           },
           daily_flow: {
