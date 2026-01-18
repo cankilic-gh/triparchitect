@@ -22,22 +22,12 @@ Generate a strict JSON dataset that populates the "Trip Canvas".
 # TWO TYPES OF PINS
 You MUST generate TWO categories of map_pins:
 
-1. **Scheduled Pins (day_index = 1, 2, 3...):** 4 items per day:
-   - Breakfast (time_slot: "Morning", category_icon: "food")
-   - Lunch (time_slot: "Lunch", category_icon: "food")
-   - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
-   - Dinner (time_slot: "Dinner", category_icon: "food")
+1. **Scheduled Pins (day_index = 1, 2, 3...):** 3-4 items per day:
+   - Breakfast, Activity, Dinner (minimum)
+   - Add Lunch for shorter trips
 
-2. **Recommended Alternatives (day_index = 0):** 30+ EXTRA places NOT in daily schedule:
-   - PRIORITY ORDER (list these first in the array):
-     * 5-6 Coffee shops & cafes (category_icon: "food", include "cafe" or "coffee" in name/description)
-     * 5-6 Dessert & bakery spots (category_icon: "food", include "dessert", "pastry", "bakery" in description)
-   - THEN include:
-     * 8-10 Alternative restaurants (breakfast, lunch, dinner options)
-     * 5-6 Hidden gems & local favorites
-     * 5-6 Additional sights, museums, parks
-   - Mix all price tiers ($, $$, $$$)
-   - Cover various time slots so user can swap activities
+2. **Recommended Alternatives (day_index = 0):** A few extra places (cafes, restaurants, activities)
+   - Keep this section SMALL to save space
 
 # RATING
 For each pin, provide a realistic "rating" (1.0-5.0) based on the place's general reputation and popularity.
@@ -73,15 +63,14 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
-      1. SCHEDULED pins for days 1 through ${prefs.duration}: 4 items PER DAY (total ${prefs.duration * 4} scheduled pins):
+      1. SCHEDULED pins for days 1 through ${prefs.duration}: ${prefs.duration > 10 ? '3' : '4'} items PER DAY:
          - Breakfast (time_slot: "Morning", category_icon: "food")
-         - Lunch (time_slot: "Lunch", category_icon: "food")
+         ${prefs.duration <= 10 ? '- Lunch (time_slot: "Lunch", category_icon: "food")' : ''}
          - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
          - Dinner (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): ${Math.max(5, 15 - prefs.duration)} alternative places only:
-         - Mix of cafes, restaurants, activities
-         - Keep descriptions SHORT (under 80 chars)
+      2. RECOMMENDED pins (day_index = 0): ONLY ${Math.max(3, 10 - Math.floor(prefs.duration / 2))} places:
+         - Keep descriptions VERY SHORT (under 60 chars)
 
     - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
 
