@@ -56,7 +56,7 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     Interests: ${prefs.interests}
 
     Generate a complete trip plan with:
-    - trip_meta: title, duration, total_estimated_cost, vibe_tags (max 5 tags)
+    - trip_meta: title, duration, vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
       1. SCHEDULED pins (day_index = 1, 2, 3...): 6 items PER DAY:
@@ -94,20 +94,12 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
             properties: {
               title: { type: Type.STRING },
               duration: { type: Type.STRING },
-              total_estimated_cost: {
-                type: Type.OBJECT,
-                properties: {
-                  currency: { type: Type.STRING },
-                  amount: { type: Type.NUMBER }
-                },
-                required: ["currency", "amount"]
-              },
               vibe_tags: {
                 type: Type.ARRAY,
                 items: { type: Type.STRING }
               }
             },
-            required: ["title", "duration", "total_estimated_cost", "vibe_tags"]
+            required: ["title", "duration", "vibe_tags"]
           },
           map_pins: {
             type: Type.ARRAY,

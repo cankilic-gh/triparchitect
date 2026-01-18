@@ -241,12 +241,6 @@ export default function App() {
                         ))}
                     </div>
                   </div>
-                  <div className="text-right hidden sm:block">
-                     <p className="text-sm text-slate-500">Total Est.</p>
-                     <p className="text-xl font-medium text-emerald-600">
-                        {tripData.trip_meta.total_estimated_cost.amount} {tripData.trip_meta.total_estimated_cost.currency}
-                     </p>
-                  </div>
               </div>
 
               {/* Day Selector */}

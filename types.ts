@@ -1,10 +1,6 @@
 export interface TripMeta {
   title: string;
   duration: string;
-  total_estimated_cost: {
-    currency: string;
-    amount: number;
-  };
   vibe_tags: string[];
 }
 
