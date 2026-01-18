@@ -52,15 +52,22 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     throw new Error("API Key is missing. Please enter your Gemini API key.");
   }
 
+  console.log('Generating trip with duration:', prefs.duration, 'days');
+
   const ai = new GoogleGenAI({ apiKey });
+
+  // Generate day list for prompt
+  const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
   const userPrompt = `
     Destination: ${prefs.destination}
-    Duration: EXACTLY ${prefs.duration} days (day_index 1 to ${prefs.duration})
+    Duration: ${prefs.duration} days
     Party Size: ${prefs.partySize}
     Interests: ${prefs.interests}
 
-    CRITICAL: You MUST generate a plan for EXACTLY ${prefs.duration} days. The daily_flow array MUST have ${prefs.duration} entries.
+    YOU MUST CREATE PLANS FOR THESE SPECIFIC DAYS: [${dayList}]
+
+    The daily_flow array MUST contain exactly ${prefs.duration} objects with day_num: ${dayList}
 
     Generate a complete trip plan with:
     - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
@@ -77,9 +84,9 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
          - Alternative restaurants, hidden gems
          Mix all price tiers ($, $$, $$$)
 
-    - daily_flow: EXACTLY ${prefs.duration} entries (day_num 1 to ${prefs.duration})
+    - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
 
-    CRITICAL: You MUST create entries for ALL ${prefs.duration} days. Do not stop early!
+    FAILURE TO GENERATE ALL ${prefs.duration} DAYS IS NOT ACCEPTABLE!
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence
@@ -162,6 +169,9 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
   }
 
   const data = JSON.parse(text) as TripData;
+
+  console.log('Generated days:', data.daily_flow?.length, '- Requested:', prefs.duration);
+  console.log('Daily flow:', data.daily_flow?.map(d => d.day_num));
 
   // Validate required fields
   if (!data.map_pins || !data.daily_flow || !data.trip_meta) {
