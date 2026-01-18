@@ -227,7 +227,7 @@ export default function App() {
           <div className="h-[60vh] md:h-auto md:flex-[45] bg-white/30 backdrop-blur-md border-l border-white/50 flex flex-col order-2 md:order-2 overflow-hidden">
 
             {/* Header / Meta */}
-            <div className="p-6 md:p-8 pb-6 border-b border-white/20 shrink-0">
+            <div className="p-6 md:p-8 pb-8 border-b border-white/20 shrink-0">
               <div className="flex justify-between items-start mb-4">
                   <div>
                     <h1 className="text-2xl md:text-3xl font-serif text-slate-800 leading-tight mb-2">
@@ -244,7 +244,7 @@ export default function App() {
               </div>
 
               {/* Day Selector */}
-              <div className="flex gap-2 overflow-x-auto pb-3 pt-1 no-scrollbar">
+              <div className="flex gap-2 overflow-x-auto pb-4 pt-1 no-scrollbar">
                 {tripData.daily_flow.map((day) => (
                     <button
                         key={day.day_num}
