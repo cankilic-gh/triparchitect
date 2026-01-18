@@ -21,12 +21,22 @@ Generate a strict JSON dataset that populates the "Trip Canvas".
 
 # TWO TYPES OF PINS
 You MUST generate TWO categories of map_pins:
-1. **Scheduled Pins (day_index = 1, 2, 3...):** 3-4 activities per day that form the main itinerary
-2. **Recommended Alternatives (day_index = 0):** 15-20 EXTRA places that are NOT in the daily schedule but are great alternatives
-   - Include diverse categories: hidden gems, local favorites, backup restaurants, scenic spots, museums, parks, cafes
-   - Mix different price tiers ($, $$, $$$)
+
+1. **Scheduled Pins (day_index = 1, 2, 3...):** 6 items per day:
+   - 3 MEALS: Breakfast (Morning), Lunch (Lunch), Dinner (Dinner) - all with category_icon: "food"
+   - 3 ACTIVITIES: sights, nature, shopping, or activity - spread across Morning, Afternoon time slots
+   - Order in daily_flow: Breakfast → Morning Activity → Lunch → Afternoon Activity 1 → Afternoon Activity 2 → Dinner
+
+2. **Recommended Alternatives (day_index = 0):** 30+ EXTRA places NOT in daily schedule:
+   - PRIORITY ORDER (list these first in the array):
+     * 5-6 Coffee shops & cafes (category_icon: "food", include "cafe" or "coffee" in name/description)
+     * 5-6 Dessert & bakery spots (category_icon: "food", include "dessert", "pastry", "bakery" in description)
+   - THEN include:
+     * 8-10 Alternative restaurants (breakfast, lunch, dinner options)
+     * 5-6 Hidden gems & local favorites
+     * 5-6 Additional sights, museums, parks
+   - Mix all price tiers ($, $$, $$$)
    - Cover various time slots so user can swap activities
-   - These appear in a "Recommended Places" pool that users can drag into their itinerary
 
 # OUTPUT SCHEMA
 Return ONLY a JSON object matching the requested schema.
@@ -48,14 +58,25 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     Generate a complete trip plan with:
     - trip_meta: title, duration, total_estimated_cost, vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
-      1. SCHEDULED pins (day_index = 1, 2, 3...): 3-4 activities per day for the main itinerary
-      2. RECOMMENDED pins (day_index = 0): AT LEAST 15-20 alternative places NOT in daily schedule
-         Include: hidden gems, alternative restaurants, scenic viewpoints, local markets, museums, parks, cafes, nightlife
-         Mix all categories (food, sights, nature, shopping, activity) and price tiers ($, $$, $$$)
-    - daily_flow: array with one entry per day linking ONLY to scheduled pin_ids (not recommended ones)
 
-    IMPORTANT: The recommended pins (day_index = 0) are alternatives users can drag into their itinerary.
-    Generate diverse options so users have real choices. All three sections are REQUIRED.
+      1. SCHEDULED pins (day_index = 1, 2, 3...): 6 items PER DAY:
+         - Breakfast spot (time_slot: "Morning", category_icon: "food")
+         - Morning activity (time_slot: "Morning", category_icon: sights/nature/activity)
+         - Lunch spot (time_slot: "Lunch", category_icon: "food")
+         - Afternoon activity 1 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+         - Afternoon activity 2 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+         - Dinner spot (time_slot: "Dinner", category_icon: "food")
+
+      2. RECOMMENDED pins (day_index = 0): AT LEAST 30 alternative places, ordered as:
+         - FIRST 5-6: Coffee shops & specialty cafes
+         - NEXT 5-6: Dessert spots, bakeries, pastry shops
+         - THEN: Alternative restaurants, hidden gems, extra sights, museums, parks, nightlife
+         Mix all price tiers ($, $$, $$$) and time slots
+
+    - daily_flow: array with one entry per day, pin_ids in chronological order (breakfast → dinner)
+
+    IMPORTANT: Users can drag recommended items into their schedule. Prioritize coffee & dessert at top of recommended list.
+    All three sections are REQUIRED.
   `;
 
   // Define the schema for structured output to ensure strict JSON adherence
