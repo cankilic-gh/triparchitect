@@ -91,7 +91,7 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
 
   // Define the schema for structured output to ensure strict JSON adherence
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     contents: userPrompt,
     config: {
       maxOutputTokens: 16384,
