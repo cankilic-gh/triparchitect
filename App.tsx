@@ -365,7 +365,7 @@ export default function App() {
                             ${dragOverDay === day.day_num ? 'ring-2 ring-rose-300 bg-rose-50' : ''}
                         `}
                     >
-                        {day.day_num}
+                        Day {day.day_num}
                     </button>
                 ))}
               </div>
