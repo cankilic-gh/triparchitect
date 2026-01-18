@@ -62,12 +62,12 @@ export default function App() {
     }
   }, [tripData, viewState]);
 
-  const handleGenerate = async (prefs: UserPreferences) => {
+  const handleGenerate = async (prefs: UserPreferences, apiKey: string) => {
     setViewState('loading');
     setShowSearchModal(false);
     setError(null);
     try {
-      const data = await generateTrip(prefs);
+      const data = await generateTrip(prefs, apiKey);
       setTripData(data);
       setViewState('result');
       // Reset filters and limits
