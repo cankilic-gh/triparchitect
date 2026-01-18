@@ -22,12 +22,13 @@ Generate a strict JSON dataset that populates the "Trip Canvas".
 # TWO TYPES OF PINS
 You MUST generate TWO categories of map_pins:
 
-1. **Scheduled Pins (day_index = 1, 2, 3...):** 3-4 items per day:
-   - Breakfast, Activity, Dinner (minimum)
-   - Add Lunch for shorter trips
+1. **Scheduled Pins (day_index = 1, 2, 3...):** 6 items per day:
+   - 3 MEALS: Breakfast (Morning), Lunch (Lunch), Dinner (Dinner) - category_icon: "food"
+   - 3 ACTIVITIES: Morning activity, 2 Afternoon activities - category_icon: sights/nature/shopping/activity
+   - Order: Breakfast → Morning Activity → Lunch → Afternoon Activity 1 → Afternoon Activity 2 → Dinner
 
-2. **Recommended Alternatives (day_index = 0):** A few extra places (cafes, restaurants, activities)
-   - Keep this section SMALL to save space
+2. **Recommended Alternatives (day_index = 0):** 10-15 extra places:
+   - Coffee shops, dessert spots, bakeries, alternative restaurants, hidden gems
 
 # RATING
 For each pin, provide a realistic "rating" (1.0-5.0) based on the place's general reputation and popularity.
@@ -63,14 +64,17 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
-      1. SCHEDULED pins for days 1 through ${prefs.duration}: 4 items PER DAY:
-         - Breakfast (time_slot: "Morning", category_icon: "food")
-         - Lunch (time_slot: "Lunch", category_icon: "food")
-         - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
-         - Dinner (time_slot: "Dinner", category_icon: "food")
+      1. SCHEDULED pins for days 1 through ${prefs.duration}: 6 items PER DAY in this order:
+         - Breakfast restaurant (time_slot: "Morning", category_icon: "food")
+         - Morning activity (time_slot: "Morning", category_icon: sights/nature/activity)
+         - Lunch restaurant (time_slot: "Lunch", category_icon: "food")
+         - Afternoon activity 1 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+         - Afternoon activity 2 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
+         - Dinner restaurant (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): 10 alternative places:
-         - Mix of cafes, desserts, restaurants, activities
+      2. RECOMMENDED pins (day_index = 0): 10-15 alternative places:
+         - Coffee shops, dessert places, bakeries
+         - Alternative restaurants, hidden gems
          - Keep descriptions SHORT (under 80 chars)
 
     - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
