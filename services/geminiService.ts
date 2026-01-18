@@ -27,10 +27,9 @@ You MUST generate TWO categories of map_pins:
    - 3 ACTIVITIES: Morning activity, 2 Afternoon activities - category_icon: sights/nature/shopping/activity
    - Order: Breakfast → Morning Activity → Lunch → Afternoon Activity 1 → Afternoon Activity 2 → Dinner
 
-2. **Recommended Alternatives (day_index = 0):** 20-25 extra places:
-   - Coffee shops, dessert spots, bakeries
-   - Alternative restaurants
-   - Places matching user's stated interests
+2. **Recommended Alternatives (day_index = 0):** 15 extra places:
+   - Coffee, desserts, restaurants, user interests
+   - Keep descriptions SHORT
 
 # RATING
 For each pin, provide a realistic "rating" (1.0-5.0) based on the place's general reputation and popularity.
@@ -74,12 +73,12 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
          - Afternoon activity 2 (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
          - Dinner restaurant (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): 20-25 alternative places:
-         - 5-6 Coffee shops and cafes
-         - 5-6 Dessert places, bakeries, pastry shops
-         - 5-6 Alternative restaurants (breakfast, lunch, dinner options)
-         - 5-8 places matching user interests: "${prefs.interests || 'local favorites, hidden gems'}"
-         - Keep descriptions SHORT (under 80 chars)
+      2. RECOMMENDED pins (day_index = 0): 15 alternative places:
+         - 3-4 Coffee shops and cafes
+         - 3-4 Dessert places, bakeries
+         - 3-4 Alternative restaurants
+         - 3-4 places matching user interests: "${prefs.interests || 'hidden gems'}"
+         - Keep descriptions VERY SHORT (under 60 chars)
 
     - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
 
