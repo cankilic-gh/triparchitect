@@ -9,7 +9,7 @@ Your output drives a frontend interface that features a **Split-Screen Layout**:
 
 # VISUAL & UX CONTEXT
 The UI is minimalist, pastel-toned, and image-heavy.
-* **Text Constraint:** No walls of text. Descriptions must be "Tweet-length" (max 140 chars).
+* **Text Constraint:** Descriptions MUST be under 80 characters. Be concise!
 * **Iconography:** Assign a valid category_icon.
 * **Vibe:** "Curated & Exclusive" but accessible.
 
@@ -79,10 +79,9 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
          - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
          - Dinner (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): ${Math.min(20, Math.max(10, 30 - prefs.duration * 2))} alternative places:
-         - Coffee shops, cafes, dessert spots, bakeries
-         - Alternative restaurants, hidden gems
-         Mix all price tiers ($, $$, $$$)
+      2. RECOMMENDED pins (day_index = 0): ${Math.max(5, 15 - prefs.duration)} alternative places only:
+         - Mix of cafes, restaurants, activities
+         - Keep descriptions SHORT (under 80 chars)
 
     - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
 
@@ -94,7 +93,7 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     model: 'gemini-2.0-flash',
     contents: userPrompt,
     config: {
-      maxOutputTokens: 16384,
+      maxOutputTokens: 32768,
       systemInstruction: SYSTEM_PROMPT,
       responseMimeType: "application/json",
       responseSchema: {
