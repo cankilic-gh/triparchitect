@@ -5,9 +5,8 @@ import { TripData, UserPreferences, MapPin } from './types';
 import { TripMap } from './components/TripMap';
 import { GlassCard } from './components/GlassCard';
 import { getCategoryIcon } from './components/Icons';
-import { Clock, Navigation, Banknote, ArrowLeft, Star, Download, Trash2, GripVertical, Sparkles, ChevronDown, Filter, X, Search } from 'lucide-react';
+import { Navigation, Star, Download, Trash2, GripVertical, Sparkles, ChevronDown, X, Search } from 'lucide-react';
 import { CategoryIcon } from './types';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip } from 'recharts';
 
 const TRIP_DATA_STORAGE_KEY = 'triparchitect_trip_data';
 
@@ -168,18 +167,6 @@ export default function App() {
   // Get unique categories from recommended pins for filter
   const availableCategories = [...new Set(allRecommendedPins.map(p => p.category_icon))];
 
-  // Chart Data Preparation
-  const getCostDistribution = () => {
-    if (!tripData) return [];
-    const tiers = { "$": 0, "$$": 0, "$$$": 0 };
-    tripData.map_pins.forEach(p => tiers[p.cost_tier]++);
-    return [
-      { name: 'Budget ($)', value: tiers['$'], color: '#4ade80' },
-      { name: 'Standard ($$)', value: tiers['$$'], color: '#facc15' },
-      { name: 'Luxury ($$$)', value: tiers['$$$'], color: '#f43f5e' }
-    ].filter(d => d.value > 0);
-  };
-
   return (
     <div className="h-screen w-full relative overflow-hidden bg-[#FDFCF8]">
       {/* Background Decor */}
@@ -237,7 +224,7 @@ export default function App() {
           </div>
 
           {/* RIGHT: CONTENT (Stacked bottom on mobile, Right on desktop) */}
-          <div className="h-[60vh] md:h-full md:w-[45%] bg-white/30 backdrop-blur-md border-l border-white/50 flex flex-col order-2 md:order-2">
+          <div className="h-[60vh] md:h-full md:w-[45%] bg-white/30 backdrop-blur-md border-l border-white/50 flex flex-col order-2 md:order-2 overflow-hidden">
             
             {/* Header / Meta */}
             <div className="p-6 md:p-8 border-b border-white/20 shrink-0 overflow-visible">
@@ -290,7 +277,7 @@ export default function App() {
 
             {/* Scrollable List */}
             <div
-              className={`flex-1 overflow-y-auto p-6 md:p-8 space-y-4 glass-scroll scroll-smooth ${dragOverDay === activeDay ? 'bg-rose-50/30' : ''}`}
+              className={`flex-1 min-h-0 overflow-y-auto p-6 md:p-8 space-y-4 glass-scroll scroll-smooth ${dragOverDay === activeDay ? 'bg-rose-50/30' : ''}`}
               onDragOver={(e) => handleDragOver(e, activeDay)}
               onDragLeave={handleDragLeave}
               onDrop={(e) => handleDrop(e, activeDay)}
@@ -479,32 +466,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* Stats Section at bottom of scroll */}
-              <div className="pt-8 pb-4">
-                 <h4 className="text-sm uppercase tracking-widest text-slate-400 font-bold mb-4 text-center">Trip Balance</h4>
-                 <div className="h-32 w-full">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <PieChart>
-                            <Pie
-                                data={getCostDistribution()}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={30}
-                                outerRadius={50}
-                                paddingAngle={5}
-                                dataKey="value"
-                            >
-                                {getCostDistribution().map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                                ))}
-                            </Pie>
-                            <RechartsTooltip 
-                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
-                            />
-                        </PieChart>
-                    </ResponsiveContainer>
-                 </div>
-              </div>
             </div>
 
             {/* Sticky Action Bar */}
