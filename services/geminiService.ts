@@ -63,14 +63,15 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
     - map_pins: This array MUST contain TWO types of pins:
 
-      1. SCHEDULED pins for days 1 through ${prefs.duration}: ${prefs.duration > 10 ? '3' : '4'} items PER DAY:
+      1. SCHEDULED pins for days 1 through ${prefs.duration}: 4 items PER DAY:
          - Breakfast (time_slot: "Morning", category_icon: "food")
-         ${prefs.duration <= 10 ? '- Lunch (time_slot: "Lunch", category_icon: "food")' : ''}
+         - Lunch (time_slot: "Lunch", category_icon: "food")
          - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
          - Dinner (time_slot: "Dinner", category_icon: "food")
 
-      2. RECOMMENDED pins (day_index = 0): ONLY ${Math.max(3, 10 - Math.floor(prefs.duration / 2))} places:
-         - Keep descriptions VERY SHORT (under 60 chars)
+      2. RECOMMENDED pins (day_index = 0): 10 alternative places:
+         - Mix of cafes, desserts, restaurants, activities
+         - Keep descriptions SHORT (under 80 chars)
 
     - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
 
