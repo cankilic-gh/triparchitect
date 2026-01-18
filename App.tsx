@@ -349,7 +349,7 @@ export default function App() {
               </div>
 
               {/* Day Selector */}
-              <div className="flex gap-1.5 overflow-x-auto pb-4 pt-1 no-scrollbar">
+              <div className="flex gap-1 pb-4 pt-1">
                 {tripData.daily_flow.map((day) => (
                     <button
                         key={day.day_num}
@@ -358,7 +358,7 @@ export default function App() {
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, day.day_num)}
                         className={`
-                            min-w-[44px] px-3 py-1.5 rounded-lg text-sm font-medium whitespace-nowrap transition-all border
+                            flex-1 py-2 rounded-lg text-sm font-medium transition-all border
                             ${activeDay === day.day_num
                                 ? 'bg-rose-400 text-white border-rose-400 shadow-lg shadow-rose-200'
                                 : 'bg-white/50 text-slate-600 border-white/50 hover:bg-white/80'}
