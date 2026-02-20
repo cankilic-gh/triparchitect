@@ -1,7 +1,41 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { TripData, UserPreferences } from "../types";
 
-const SYSTEM_PROMPT = `
+// Check if we're in development mode with a local API key
+const isDev = import.meta.env.DEV;
+const localApiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+export const generateTrip = async (prefs: UserPreferences): Promise<TripData> => {
+  console.log('Generating trip with duration:', prefs.duration, 'days');
+
+  // In production, use the API proxy
+  // In dev with local key, use direct API call
+  if (!isDev || !localApiKey) {
+    // Use server-side proxy
+    const response = await fetch('/api/gemini', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(prefs),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to generate trip');
+    }
+
+    const data = await response.json() as TripData;
+
+    console.log('Generated days:', data.daily_flow?.length, '- Requested:', prefs.duration);
+    console.log('Daily flow:', data.daily_flow?.map(d => d.day_num));
+
+    return data;
+  }
+
+  // Development mode with local API key - use direct SDK call
+  const { GoogleGenAI, Type } = await import("@google/genai");
+
+  const SYSTEM_PROMPT = `
 You are "TripArchitect Core," the backend intelligence for a high-end, visual travel planning web application.
 Your output drives a frontend interface that features a **Split-Screen Layout**:
 1.  **Interactive Map (Left Side):** Requires precise coordinates and category-specific pin types (Food, Gym, Shopping, Nature).
@@ -36,16 +70,8 @@ Well-known popular spots: 4.2-4.8, Hidden gems: 3.8-4.3, Average places: 3.5-4.0
 Return ONLY a JSON object matching the requested schema.
 `;
 
-export const generateTrip = async (prefs: UserPreferences, apiKey: string): Promise<TripData> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing. Please enter your Gemini API key.");
-  }
+  const ai = new GoogleGenAI({ apiKey: localApiKey });
 
-  console.log('Generating trip with duration:', prefs.duration, 'days');
-
-  const ai = new GoogleGenAI({ apiKey });
-
-  // Generate day list for prompt
   const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
   const userPrompt = `
@@ -77,7 +103,6 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
     FAILURE TO GENERATE ALL ${prefs.duration} DAYS IS NOT ACCEPTABLE!
   `;
 
-  // Define the schema for structured output to ensure strict JSON adherence
   const response = await ai.models.generateContent({
     model: 'gemini-2.0-flash',
     contents: userPrompt,
@@ -161,7 +186,6 @@ export const generateTrip = async (prefs: UserPreferences, apiKey: string): Prom
   console.log('Generated days:', data.daily_flow?.length, '- Requested:', prefs.duration);
   console.log('Daily flow:', data.daily_flow?.map(d => d.day_num));
 
-  // Validate required fields
   if (!data.map_pins || !data.daily_flow || !data.trip_meta) {
     console.error('Invalid response structure:', data);
     throw new Error("Invalid response structure from AI");
