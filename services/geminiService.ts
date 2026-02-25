@@ -19,19 +19,20 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
       body: JSON.stringify(prefs),
     });
 
+    const text = await response.text();
+
     if (!response.ok) {
-      let errorMsg = 'Failed to generate trip';
+      let errorMsg = `Server error (${response.status})`;
       try {
-        const error = await response.json();
+        const error = JSON.parse(text);
         errorMsg = error.error || errorMsg;
       } catch {
-        const text = await response.text();
-        errorMsg = text || `Server error (${response.status})`;
+        errorMsg = text || errorMsg;
       }
       throw new Error(errorMsg);
     }
 
-    const data = await response.json() as TripData;
+    const data = JSON.parse(text) as TripData;
 
     console.log('Generated days:', data.daily_flow?.length, '- Requested:', prefs.duration);
     console.log('Daily flow:', data.daily_flow?.map(d => d.day_num));
