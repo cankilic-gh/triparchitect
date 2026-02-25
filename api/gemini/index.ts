@@ -1,8 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
-
 export const config = {
-  runtime: 'nodejs',
-  maxDuration: 60,
+  runtime: 'edge',
 };
 
 const SYSTEM_PROMPT = `
@@ -40,6 +37,59 @@ Well-known popular spots: 4.2-4.8, Hidden gems: 3.8-4.3, Average places: 3.5-4.0
 Return ONLY a JSON object matching the requested schema.
 `;
 
+const responseSchema = {
+  type: "OBJECT",
+  properties: {
+    trip_meta: {
+      type: "OBJECT",
+      properties: {
+        title: { type: "STRING" },
+        duration: { type: "STRING" },
+        vibe_tags: { type: "ARRAY", items: { type: "STRING" } }
+      },
+      required: ["title", "duration", "vibe_tags"]
+    },
+    map_pins: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          id: { type: "STRING" },
+          day_index: { type: "INTEGER" },
+          name: { type: "STRING" },
+          coordinates: {
+            type: "OBJECT",
+            properties: { lat: { type: "NUMBER" }, lng: { type: "NUMBER" } },
+            required: ["lat", "lng"]
+          },
+          category_icon: { type: "STRING", enum: ["food", "sights", "nature", "shopping", "activity"] },
+          short_description: { type: "STRING" },
+          image_search_query: { type: "STRING" },
+          time_slot: { type: "STRING", enum: ["Morning", "Lunch", "Afternoon", "Dinner"] },
+          logistics_note: { type: "STRING" },
+          cost_tier: { type: "STRING", enum: ["$", "$$", "$$$"] },
+          rating: { type: "NUMBER" }
+        },
+        required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier", "rating"]
+      }
+    },
+    daily_flow: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          day_num: { type: "INTEGER" },
+          date: { type: "STRING" },
+          theme: { type: "STRING" },
+          pin_ids: { type: "ARRAY", items: { type: "STRING" } }
+        },
+        required: ["day_num", "theme", "pin_ids"]
+      }
+    }
+  },
+  required: ["trip_meta", "map_pins", "daily_flow"]
+};
+
 interface UserPreferences {
   destination: string;
   duration: number;
@@ -74,8 +124,6 @@ export default async function handler(req: Request) {
       });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
-
     const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
     const userPrompt = `
@@ -107,80 +155,37 @@ export default async function handler(req: Request) {
       FAILURE TO GENERATE ALL ${prefs.duration} DAYS IS NOT ACCEPTABLE!
     `;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash-lite',
-      contents: userPrompt,
-      config: {
-        maxOutputTokens: 16384,
-        systemInstruction: SYSTEM_PROMPT,
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            trip_meta: {
-              type: Type.OBJECT,
-              properties: {
-                title: { type: Type.STRING },
-                duration: { type: Type.STRING },
-                vibe_tags: {
-                  type: Type.ARRAY,
-                  items: { type: Type.STRING }
-                }
-              },
-              required: ["title", "duration", "vibe_tags"]
-            },
-            map_pins: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  id: { type: Type.STRING },
-                  day_index: { type: Type.INTEGER },
-                  name: { type: Type.STRING },
-                  coordinates: {
-                    type: Type.OBJECT,
-                    properties: {
-                      lat: { type: Type.NUMBER },
-                      lng: { type: Type.NUMBER }
-                    },
-                    required: ["lat", "lng"]
-                  },
-                  category_icon: { type: Type.STRING, enum: ["food", "sights", "nature", "shopping", "activity"] },
-                  short_description: { type: Type.STRING },
-                  image_search_query: { type: Type.STRING },
-                  time_slot: { type: Type.STRING, enum: ["Morning", "Lunch", "Afternoon", "Dinner"] },
-                  logistics_note: { type: Type.STRING },
-                  cost_tier: { type: Type.STRING, enum: ["$", "$$", "$$$"] },
-                  rating: { type: Type.NUMBER }
-                },
-                required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier", "rating"]
-              }
-            },
-            daily_flow: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  day_num: { type: Type.INTEGER },
-                  date: { type: Type.STRING },
-                  theme: { type: Type.STRING },
-                  pin_ids: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING }
-                  }
-                },
-                required: ["day_num", "theme", "pin_ids"]
-              }
-            }
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ parts: [{ text: userPrompt }] }],
+          generationConfig: {
+            maxOutputTokens: 32768,
+            responseMimeType: "application/json",
+            responseSchema,
           },
-          required: ["trip_meta", "map_pins", "daily_flow"]
-        }
+        }),
       }
-    });
+    );
 
-    const text = response.text;
+    if (!geminiResponse.ok) {
+      const errText = await geminiResponse.text();
+      console.error('Gemini API HTTP Error:', geminiResponse.status, errText);
+      return new Response(JSON.stringify({ error: `Gemini API error: ${geminiResponse.status}` }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const geminiData = await geminiResponse.json();
+    const text = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!text) {
+      console.error('No text in Gemini response:', JSON.stringify(geminiData));
       return new Response(JSON.stringify({ error: 'No response from AI' }), {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
