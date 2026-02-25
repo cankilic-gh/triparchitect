@@ -2,93 +2,35 @@ export const config = {
   maxDuration: 60,
 };
 
-const SYSTEM_PROMPT = `
-You are "TripArchitect Core," the backend intelligence for a high-end, visual travel planning web application.
-Your output drives a frontend interface that features a **Split-Screen Layout**:
-1.  **Interactive Map (Left Side):** Requires precise coordinates and category-specific pin types (Food, Gym, Shopping, Nature).
-2.  **Glassmorphism Cards (Right Side):** Requires punchy, short, and inviting titles with visually descriptive tags.
-
-# VISUAL & UX CONTEXT
-The UI is minimalist, pastel-toned, and image-heavy.
-* **Text Constraint:** Descriptions MUST be under 80 characters. Be concise!
-* **Iconography:** Assign a valid category_icon.
-* **Vibe:** "Curated & Exclusive" but accessible.
-
-# MISSION OBJECTIVE
-Generate a strict JSON dataset that populates the "Trip Canvas".
-1.  **Cluster Logic:** Group activities geographically.
-2.  **Kid/Family Check:** Prioritize appropriately based on party size.
-3.  **Visual Cues:** Provide a 'image_search_query' for visually stunning background images.
-
-# TWO TYPES OF PINS
-You MUST generate TWO categories of map_pins:
-
-1. **Scheduled Pins (day_index = 1, 2, 3...):** 5 items per day:
-   - Breakfast → Morning Activity → Lunch → Afternoon Activity → Dinner
-
-2. **Recommended Alternatives (day_index = 0):** 10 places based on user interests
-   - Descriptions must be under 50 characters!
-
-# RATING
-For each pin, provide a realistic "rating" (1.0-5.0) based on the place's general reputation and popularity.
-Well-known popular spots: 4.2-4.8, Hidden gems: 3.8-4.3, Average places: 3.5-4.0
-
-# OUTPUT SCHEMA
-Return ONLY a JSON object matching the requested schema.
-`;
-
-const responseSchema = {
-  type: "OBJECT",
-  properties: {
-    trip_meta: {
-      type: "OBJECT",
-      properties: {
-        title: { type: "STRING" },
-        duration: { type: "STRING" },
-        vibe_tags: { type: "ARRAY", items: { type: "STRING" } }
-      },
-      required: ["title", "duration", "vibe_tags"]
-    },
-    map_pins: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          id: { type: "STRING" },
-          day_index: { type: "INTEGER" },
-          name: { type: "STRING" },
-          coordinates: {
-            type: "OBJECT",
-            properties: { lat: { type: "NUMBER" }, lng: { type: "NUMBER" } },
-            required: ["lat", "lng"]
-          },
-          category_icon: { type: "STRING", enum: ["food", "sights", "nature", "shopping", "activity"] },
-          short_description: { type: "STRING" },
-          image_search_query: { type: "STRING" },
-          time_slot: { type: "STRING", enum: ["Morning", "Lunch", "Afternoon", "Dinner"] },
-          logistics_note: { type: "STRING" },
-          cost_tier: { type: "STRING", enum: ["$", "$$", "$$$"] },
-          rating: { type: "NUMBER" }
-        },
-        required: ["id", "day_index", "name", "coordinates", "category_icon", "short_description", "time_slot", "cost_tier", "rating"]
-      }
-    },
-    daily_flow: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          day_num: { type: "INTEGER" },
-          date: { type: "STRING" },
-          theme: { type: "STRING" },
-          pin_ids: { type: "ARRAY", items: { type: "STRING" } }
-        },
-        required: ["day_num", "theme", "pin_ids"]
-      }
-    }
+const JSON_SCHEMA = `{
+  "trip_meta": {
+    "title": "string",
+    "duration": "string (e.g. '3 days')",
+    "vibe_tags": ["string (max 5 tags)"]
   },
-  required: ["trip_meta", "map_pins", "daily_flow"]
-};
+  "map_pins": [
+    {
+      "id": "string (unique, e.g. 'pin_1')",
+      "day_index": "integer (1,2,3... for scheduled, 0 for recommended)",
+      "name": "string",
+      "coordinates": { "lat": "number", "lng": "number" },
+      "category_icon": "food | sights | nature | shopping | activity",
+      "short_description": "string (max 80 chars, max 50 for recommended)",
+      "image_search_query": "string",
+      "time_slot": "Morning | Lunch | Afternoon | Dinner",
+      "logistics_note": "string",
+      "cost_tier": "$ | $$ | $$$",
+      "rating": "number (1.0-5.0)"
+    }
+  ],
+  "daily_flow": [
+    {
+      "day_num": "integer",
+      "theme": "string",
+      "pin_ids": ["string (references map_pins.id)"]
+    }
+  ]
+}`;
 
 interface UserPreferences {
   destination: string;
@@ -127,34 +69,35 @@ export default async function handler(req: Request) {
     const recommendedCount = prefs.duration > 2 ? 5 : 10;
     const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
-    const userPrompt = `
-      Destination: ${prefs.destination}
-      Duration: ${prefs.duration} days
-      Party Size: ${prefs.partySize}
-      Interests: ${prefs.interests}
+    const prompt = `You are "TripArchitect Core," a travel planning AI. Generate a curated trip plan as a JSON object.
 
-      YOU MUST CREATE PLANS FOR THESE SPECIFIC DAYS: [${dayList}]
+RULES:
+- Descriptions MUST be under 80 chars (under 50 for recommended pins)
+- category_icon must be one of: food, sights, nature, shopping, activity
+- time_slot must be one of: Morning, Lunch, Afternoon, Dinner
+- cost_tier must be one of: $, $$, $$$
+- rating must be realistic (1.0-5.0): popular spots 4.2-4.8, hidden gems 3.8-4.3
+- Coordinates must be real and accurate
+- Group activities geographically within each day
 
-      The daily_flow array MUST contain exactly ${prefs.duration} objects with day_num: ${dayList}
+TRIP REQUEST:
+- Destination: ${prefs.destination}
+- Duration: ${prefs.duration} days
+- Party: ${prefs.partySize}
+- Interests: ${prefs.interests || 'local food, culture, hidden gems'}
 
-      Generate a complete trip plan with:
-      - trip_meta: title, duration (must be "${prefs.duration} days"), vibe_tags (max 5 tags)
-      - map_pins: This array MUST contain TWO types of pins:
+GENERATE:
+1. trip_meta with title, duration ("${prefs.duration} days"), and up to 5 vibe_tags
+2. map_pins array with TWO types:
+   a) SCHEDULED pins (day_index = 1 to ${prefs.duration}): exactly 5 per day:
+      Breakfast (Morning/food) → Activity (Morning) → Lunch (Lunch/food) → Activity (Afternoon) → Dinner (Dinner/food)
+   b) RECOMMENDED pins (day_index = 0): ${recommendedCount} extra places matching "${prefs.interests || 'cafes, desserts'}"
+3. daily_flow: exactly ${prefs.duration} objects for days [${dayList}], each with day_num, theme, and pin_ids referencing the scheduled pins
 
-        1. SCHEDULED pins for days 1 through ${prefs.duration}: 5 items PER DAY:
-           - Breakfast (time_slot: "Morning", category_icon: "food")
-           - Morning activity (time_slot: "Morning", category_icon: sights/nature/activity)
-           - Lunch (time_slot: "Lunch", category_icon: "food")
-           - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
-           - Dinner (time_slot: "Dinner", category_icon: "food")
+OUTPUT SCHEMA:
+${JSON_SCHEMA}
 
-        2. RECOMMENDED pins (day_index = 0): ${recommendedCount} places matching "${prefs.interests || 'cafes, desserts'}":
-           - Keep descriptions under 50 chars!
-
-      - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
-
-      FAILURE TO GENERATE ALL ${prefs.duration} DAYS IS NOT ACCEPTABLE!
-    `;
+Return ONLY the JSON object, no markdown, no explanation.`;
 
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
@@ -162,12 +105,10 @@ export default async function handler(req: Request) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
-          contents: [{ parts: [{ text: userPrompt }] }],
+          contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
-            maxOutputTokens: 32768,
+            maxOutputTokens: 8192,
             responseMimeType: "application/json",
-            responseSchema,
           },
         }),
       }
