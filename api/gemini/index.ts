@@ -124,7 +124,7 @@ export default async function handler(req: Request) {
       });
     }
 
-    const model = prefs.duration > 2 ? 'gemini-2.0-flash-lite' : 'gemini-2.0-flash';
+    const recommendedCount = prefs.duration > 2 ? 5 : 10;
     const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
     const userPrompt = `
@@ -148,7 +148,7 @@ export default async function handler(req: Request) {
            - Afternoon activity (time_slot: "Afternoon", category_icon: sights/nature/shopping/activity)
            - Dinner (time_slot: "Dinner", category_icon: "food")
 
-        2. RECOMMENDED pins (day_index = 0): 10 places matching "${prefs.interests || 'cafes, desserts'}":
+        2. RECOMMENDED pins (day_index = 0): ${recommendedCount} places matching "${prefs.interests || 'cafes, desserts'}":
            - Keep descriptions under 50 chars!
 
       - daily_flow: MUST have ${prefs.duration} objects, one for each day_num in [${dayList}]
@@ -157,7 +157,7 @@ export default async function handler(req: Request) {
     `;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
