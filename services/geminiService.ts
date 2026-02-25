@@ -20,8 +20,15 @@ export const generateTrip = async (prefs: UserPreferences): Promise<TripData> =>
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to generate trip');
+      let errorMsg = 'Failed to generate trip';
+      try {
+        const error = await response.json();
+        errorMsg = error.error || errorMsg;
+      } catch {
+        const text = await response.text();
+        errorMsg = text || `Server error (${response.status})`;
+      }
+      throw new Error(errorMsg);
     }
 
     const data = await response.json() as TripData;
