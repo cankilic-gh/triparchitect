@@ -1,6 +1,5 @@
 export const config = {
-  runtime: 'nodejs',
-  maxDuration: 60,
+  runtime: 'edge',
 };
 
 const SYSTEM_PROMPT = `
@@ -125,6 +124,7 @@ export default async function handler(req: Request) {
       });
     }
 
+    const model = prefs.duration > 2 ? 'gemini-2.0-flash-lite' : 'gemini-2.0-flash';
     const dayList = Array.from({ length: prefs.duration }, (_, i) => i + 1).join(', ');
 
     const userPrompt = `
@@ -157,7 +157,7 @@ export default async function handler(req: Request) {
     `;
 
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
