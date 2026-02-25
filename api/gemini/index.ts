@@ -108,10 +108,10 @@ export default async function handler(req: Request) {
     `;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.0-flash-lite',
       contents: userPrompt,
       config: {
-        maxOutputTokens: 32768,
+        maxOutputTokens: 16384,
         systemInstruction: SYSTEM_PROMPT,
         responseMimeType: "application/json",
         responseSchema: {
