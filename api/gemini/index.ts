@@ -1,6 +1,4 @@
-export const config = {
-  maxDuration: 60,
-};
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 const JSON_SCHEMA = `{
   "trip_meta": {
@@ -32,38 +30,22 @@ const JSON_SCHEMA = `{
   ]
 }`;
 
-interface UserPreferences {
-  destination: string;
-  duration: number;
-  partySize: string;
-  interests: string;
-}
-
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
-    return new Response(JSON.stringify({ error: 'API key not configured on server' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ error: 'API key not configured on server' });
   }
 
   try {
-    const prefs: UserPreferences = await req.json();
+    const prefs = req.body;
 
-    if (!prefs.destination || !prefs.duration) {
-      return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+    if (!prefs?.destination || !prefs?.duration) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
     const recommendedCount = prefs.duration > 2 ? 5 : 10;
@@ -117,10 +99,7 @@ Return ONLY the JSON object, no markdown, no explanation.`;
     if (!geminiResponse.ok) {
       const errText = await geminiResponse.text();
       console.error('Gemini API HTTP Error:', geminiResponse.status, errText);
-      return new Response(JSON.stringify({ error: `Gemini API error: ${geminiResponse.status}` }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: `Gemini API error: ${geminiResponse.status}` });
     }
 
     const geminiData = await geminiResponse.json();
@@ -128,31 +107,19 @@ Return ONLY the JSON object, no markdown, no explanation.`;
 
     if (!text) {
       console.error('No text in Gemini response:', JSON.stringify(geminiData));
-      return new Response(JSON.stringify({ error: 'No response from AI' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: 'No response from AI' });
     }
 
     const data = JSON.parse(text);
 
     if (!data.map_pins || !data.daily_flow || !data.trip_meta) {
-      return new Response(JSON.stringify({ error: 'Invalid response structure from AI' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return res.status(500).json({ error: 'Invalid response structure from AI' });
     }
 
-    return new Response(JSON.stringify(data), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(200).json(data);
 
   } catch (error: any) {
     console.error('Gemini API Error:', error);
-    return new Response(JSON.stringify({ error: error.message || 'Failed to generate trip' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return res.status(500).json({ error: error.message || 'Failed to generate trip' });
   }
 }
